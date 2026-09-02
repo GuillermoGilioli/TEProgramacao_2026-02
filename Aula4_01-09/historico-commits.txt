@@ -1,0 +1,57 @@
+﻿# Histórico de commits — desenvolvimento local da Aula 04
+
+Este arquivo documenta o histórico real de commits do repositório de
+desenvolvimento local desta atividade. Por ter sido copiado (sem a pasta
+.git, para não criar um submódulo) para dentro do repositório principal
+da disciplina, o histórico abaixo não aparece diretamente no repositório
+final — mas evidencia que o trabalho foi feito em etapas incrementais,
+com pelo menos quatro commits de mensagem descritiva, como pede a entrega.
+
+## Log completo (git log --oneline --stat)
+
+2bb02c7 Corrige relatorio para mencionar erro do BOM no CSV, mantendo texto conciso
+ relatorio.md | 15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
+
+5b8f96b Adiciona .env ao gitignore conforme exigido pela entrega
+ .gitignore | 1 +
+ 1 file changed, 1 insertion(+)
+
+2a37637 Adiciona medicao comparando consumo de contexto com e sem subagente
+ medicao.md | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+
+3fc2d9c Traduz AGENTS.md para portugues para consistencia com o projeto
+ AGENTS.md | 43 ++++++++++++++++++++++---------------------
+ 1 file changed, 22 insertions(+), 21 deletions(-)
+
+7edfff3 Gera AGENTS.md via init e corrige apos auditoria do subagente
+ AGENTS.md | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+d83cd4d Cria subagente auditor-de-contexto com permissoes restritas
+ .opencode/agents/auditor-de-contexto.md | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+f4ef0b1 Adiciona relatorio tecnico da atividade via skill relatorio-de-atividade
+ relatorio.md | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+34ee0e8 Cria servidor MCP do diario com 4 ferramentas e recurso de regras
+ .gitignore                                       |   3 +
+ .opencode/skills/relatorio-de-atividade/SKILL.md |  21 ++++
+ dados/turma.csv                                  |   6 ++
+ opencode.json                                    |  11 ++
+ servidor.py                                      | 126 +++++++++++++++++++++++
+ 5 files changed, 167 insertions(+)
+
+## Resumo cronológico
+
+1. Criação do servidor MCP com as 4 ferramentas, recurso, CSV inicial e Skill
+2. Adição do primeiro relatório técnico via Skill
+3. Criação do subagente auditor-de-contexto, com permissões restritas
+4. Geração do AGENTS.md via /init, corrigido conforme a auditoria do subagente
+5. Tradução do AGENTS.md para português
+6. Adição da medição de economia de contexto (com/sem subagente)
+7. Ajuste do .gitignore (.env)
+8. Correção do relatório para refletir com precisão o erro real ocorrido (BOM no CSV)
