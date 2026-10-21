@@ -13,7 +13,7 @@ Repositório com as atividades da disciplina, cada uma em sua pasta.
 | 3 | 25/08 | Engenharia de prompts e de contexto | [aula03-exercicios-entrega/atv3 - Aula 3](aula03-exercicios-entrega/atv3%20-%20Aula%203) |
 | 4 | 01/09 | Servidor MCP de diário de classe, Skill e subagente | [Aula4_01-09](Aula4_01-09) |
 | 7 | 29/09 | Aplicação web full stack com agentes (Ditado: login e transcrição de áudio) | [Aula 7_ 29-09](Aula%207_%2029-09) |
-
+| 10 | 20/10 | ChatBot multiagente com n8n (CLARA: ingestão de convênios, busca nos documentos e sub-agentes) | [Aula 10_ 20-10](Aula%2010_%2020-10) |
 ## Observações
 - Cada pasta traz seus próprios arquivos de instrução e documentação, quando houver (`README.md`, `AGENTS.md`).
 - Os projetos usam arquivos `.env` para chaves e senhas. Eles não são versionados, e cada projeto traz um `.env.example` quando precisa de um.
