@@ -1,0 +1,252 @@
+{
+  "name": "Aula 10 - Ingestão dos convênios",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Base de convênios",
+        "formDescription": "Envie os PDFs dos convênios. O envio substitui a base anterior.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Documentos",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "path": "base-convenios"
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -480,
+        0
+      ],
+      "id": "82c9d084-9109-4a90-946d-f8d6fee8146e",
+      "name": "Enviar convênios",
+      "webhookId": "0f5dfb65-f7b7-49e1-bba9-f64de0e02b24"
+    },
+    {
+      "parameters": {
+        "jsCode": "// O formulário entrega todos os PDFs num único item (Documentos_0, Documentos_1, ...).\n// Aqui cada arquivo vira um item, com o binário em \"data\" e o nome do arquivo no JSON.\nconst saida = [];\nfor (const item of $input.all()) {\n  for (const chave of Object.keys(item.binary ?? {})) {\n    const arquivo = item.binary[chave];\n    saida.push({ json: { arquivo: arquivo.fileName }, binary: { data: arquivo } });\n  }\n}\nreturn saida;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -256,
+        0
+      ],
+      "id": "3d3e9de2-7be9-4791-8937-c228e28dc01f",
+      "name": "Um item por arquivo"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.2,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "456732c5-5fb0-43f9-b251-2e7c3aea3e3b",
+      "name": "Extrair texto"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "value": "convenios",
+          "mode": "list"
+        },
+        "embeddingBatchSize": 50,
+        "clearStore": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        -256
+      ],
+      "id": "b8eb919e-2f9e-4480-94e8-ef066cb2ca90",
+      "name": "Inserir na base"
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        240,
+        208
+      ],
+      "id": "6496b270-c897-4003-9fac-e483e54cff4b",
+      "name": "Embeddings",
+      "credentials": {
+        "ollamaApi": {
+          "id": "jMBrhIj8Y9IM5c3f",
+          "name": "Ollama"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "arquivo",
+                "value": "={{ $('Um item por arquivo').item.json.arquivo }}"
+              },
+              {
+                "name": "convenio",
+                "value": "={{ $json.text.match(/N[º°o]\\s*(\\d+\\/\\d{4})/)?.[1] ?? '' }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        0
+      ],
+      "id": "9effd79e-3567-4407-a697-6fab0a5167a0",
+      "name": "Carregar documento"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 150,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        432,
+        416
+      ],
+      "id": "701a8bd4-ddad-4534-a1a2-e6694b819852",
+      "name": "Dividir em trechos"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Base atualizada",
+        "completionMessage": "={{ $('Um item por arquivo').all().length }} arquivo(s) indexado(s) em {{ $input.all().length }} trecho(s).",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        608,
+        -256
+      ],
+      "id": "956bd830-a263-4276-8f65-80d63a578456",
+      "name": "Base atualizada",
+      "webhookId": "b436a4a4-5a3f-4ba5-9f5f-dd0ead92e9a4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Enviar convênios": {
+      "main": [
+        [
+          {
+            "node": "Um item por arquivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Um item por arquivo": {
+      "main": [
+        [
+          {
+            "node": "Extrair texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair texto": {
+      "main": [
+        [
+          {
+            "node": "Inserir na base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Inserir na base",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Carregar documento": {
+      "ai_document": [
+        [
+          {
+            "node": "Inserir na base",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dividir em trechos": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Carregar documento",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inserir na base": {
+      "main": [
+        [
+          {
+            "node": "Base atualizada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4c26e46a-6164-4bd9-959b-5272124b8b13",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "573ffcbe48f6c7de93b7a6a752a07c0aae5588be54e22920d0b2f25dae52f3ba"
+  },
+  "nodeGroups": [],
+  "id": "SrhzfAQWTa7CELS6",
+  "tags": []
+}
