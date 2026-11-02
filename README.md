@@ -14,6 +14,7 @@ Repositório com as atividades da disciplina, cada uma em sua pasta.
 | 4 | 01/09 | Servidor MCP de diário de classe, Skill e subagente | [Aula4_01-09](Aula4_01-09) |
 | 7 | 29/09 | Aplicação web full stack com agentes (Ditado: login e transcrição de áudio) | [Aula 7_ 29-09](Aula%207_%2029-09) |
 | 10 | 20/10 | ChatBot multiagente com n8n (CLARA: ingestão de convênios, busca nos documentos e sub-agentes) | [Aula 10_ 20-10](Aula%2010_%2020-10) |
+| 11 | 27/10 | Publicando no Instagram com n8n (workflow que recebe imagem e legenda por formulário, hospeda a imagem e publica pela API) | [Aula 11_ 27-10](Aula%2011_%2027-10) |
 ## Observações
 - Cada pasta traz seus próprios arquivos de instrução e documentação, quando houver (`README.md`, `AGENTS.md`).
 - Os projetos usam arquivos `.env` para chaves e senhas. Eles não são versionados, e cada projeto traz um `.env.example` quando precisa de um.
