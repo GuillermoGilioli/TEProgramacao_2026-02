@@ -1,0 +1,317 @@
+{
+  "name": "Aula 12 - Comentários e Direct",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "instagram",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "be2bca94-7f80-4a11-9fe8-00545e36c507",
+      "name": "Evento do Instagram",
+      "webhookId": "99d3dc78-1c67-4249-a91f-75b771c997d8"
+    },
+    {
+      "parameters": {
+        "jsCode": "// A Meta envia um POST com object, entry[] e, dentro de cada entry,\n// changes[] (comentários) ou messaging[] (mensagens do Direct).\n// Este nó devolve um item por evento, com o campo \"tipo\" para o Switch.\nconst saida = [];\nfor (const item of $input.all()) {\n  const corpo = item.json.body ?? {};\n  for (const entrada of corpo.entry ?? []) {\n    for (const mudanca of entrada.changes ?? []) {\n      if (mudanca.field !== 'comments') continue;\n      const v = mudanca.value ?? {};\n      saida.push({ json: {\n        tipo: 'comentario',\n        comentario_id: v.id,\n        texto: v.text ?? '',\n        de_id: v.from?.id,\n        de_usuario: v.from?.username,\n        midia_id: v.media?.id,\n        midia_tipo: v.media?.media_product_type,\n        pai_id: v.parent_id ?? null,\n      }});\n    }\n    for (const m of entrada.messaging ?? []) {\n      if (!m.message || !m.message.text || m.message.is_echo) continue;\n      saida.push({ json: {\n        tipo: 'mensagem',\n        remetente: m.sender?.id,\n        destinatario: m.recipient?.id,\n        texto: m.message.text,\n        mensagem_id: m.message.mid,\n      }});\n    }\n  }\n}\nreturn saida;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "1810e76f-0512-4f3a-b425-63cf3ec519d2",
+      "name": "Separar eventos"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tipo }}",
+                    "rightValue": "comentario",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "dbfd6979-a36f-4049-a633-a8e2a243eff8"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "comentario"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2a800ac1-a2eb-4ddc-b695-d73fcb6a4f3e",
+                    "leftValue": "={{ $json.tipo }}",
+                    "rightValue": "mensagem",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "mensagem"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        0
+      ],
+      "id": "495cf4db-2cbe-4e71-9f7a-daa096f3808a",
+      "name": "Tipo de evento"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d40141c8-79ee-4ec3-b847-139159b0264a",
+              "leftValue": "={{ $json.midia_id }}",
+              "rightValue": "18180835063436167",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "c711f2be-875a-463c-8337-debe5c63061b",
+              "leftValue": "={{ $json.de_id }}",
+              "rightValue": "17841416319335856",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -96
+      ],
+      "id": "706ce86d-d0a7-428d-b04f-2e6f36b1e7f9",
+      "name": "Do post e de outra pessoa"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Tabela de palavras-chave do post. A primeira regra que casar define a resposta.\n// Toda resposta termina identificando que foi automática.\nconst regras = [\n  { palavras: ['senha', 'wifi', 'wi-fi', 'roteador', 'internet'],\n    resposta: 'A senha do Wi-Fi do Professor Parafuso é segredo de Estado, mas o roteador agradece se você reiniciar ele de vez em quando.' },\n  { palavras: ['video', 'vídeo', 'edicao', 'edição', 'como fez', 'como faz'],\n    resposta: 'Os vídeos do perfil são feitos com automação, usando n8n e modelos de IA.' },\n  { palavras: ['parafuso', 'professor'],\n    resposta: 'O Professor Parafuso agradece a audiência e já está inventando a próxima.' },\n  { palavras: ['parabéns', 'parabens', 'obrigado', 'obrigada', 'valeu', 'top', 'show'],\n    resposta: 'Obrigado pela força!' },\n];\nconst normalizar = (t) => t.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');\nconst saida = [];\nfor (const item of $input.all()) {\n  const texto = normalizar(item.json.texto ?? '');\n  const regra = regras.find(r => r.palavras.some(p => texto.includes(normalizar(p))));\n  if (!regra) continue; // sem palavra-chave: não responde\n  saida.push({ json: { ...item.json, palavra: regra.palavras[0],\n    resposta: `${regra.resposta} (resposta automática)` } });\n}\nreturn saida;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "0d019410-0f19-4f75-b954-19a87c881d46",
+      "name": "Palavra-chave"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/{{ $json.comentario_id }}/replies",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $json.resposta }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1120,
+        -96
+      ],
+      "id": "8dbce83b-f4b3-4a7c-871a-ed051079b0c7",
+      "name": "Responder comentário",
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "qdL6S7dgrWawQzmE",
+          "name": "Instagram TEP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "NQXzaNKyzWIfOVhW",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/NQXzaNKyzWIfOVhW",
+          "cachedResultName": "Aula 12 - Direct com agente"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "remetente": "={{ $json.remetente }}",
+            "texto": "={{ $json.texto }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "remetente",
+              "displayName": "remetente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "texto",
+              "displayName": "texto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.4,
+      "position": [
+        672,
+        96
+      ],
+      "id": "0041bc50-dea3-462b-9f21-2890b8447ad5",
+      "name": "Direct com agente"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Evento do Instagram": {
+      "main": [
+        [
+          {
+            "node": "Separar eventos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar eventos": {
+      "main": [
+        [
+          {
+            "node": "Tipo de evento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tipo de evento": {
+      "main": [
+        [
+          {
+            "node": "Do post e de outra pessoa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Direct com agente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Do post e de outra pessoa": {
+      "main": [
+        [
+          {
+            "node": "Palavra-chave",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Palavra-chave": {
+      "main": [
+        [
+          {
+            "node": "Responder comentário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d74004d2-b7cb-4a5b-9db4-a42c17fb51d8",
+  "meta": {
+    "instanceId": "573ffcbe48f6c7de93b7a6a752a07c0aae5588be54e22920d0b2f25dae52f3ba"
+  },
+  "nodeGroups": [],
+  "id": "pGguVXcctKeGKg59",
+  "tags": []
+}
