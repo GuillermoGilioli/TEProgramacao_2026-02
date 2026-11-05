@@ -1,4 +1,4 @@
-$md = @'
+
 # Aula 12 — Respondendo comentários e mensagens com n8n
 
 Atividade do Volume 12 da série *IA Generativa e Agentes Autônomos*. A conta do
@@ -131,4 +131,3 @@ aparecem nos exports: o JSON guarda apenas o nome da credencial.
 Enquanto o túnel está no ar, o n8n inteiro fica acessível pelo domínio público,
 inclusive a tela de login do editor. O túnel é fechado ao fim de cada sessão de
 trabalho.
-'@; [System.IO.File]::WriteAllText("C:\Users\Gui\tep\Aula 12_03-11\README.md", $md, [System.Text.UTF8Encoding]::new($false))
